@@ -1,13 +1,20 @@
 # Module with voting functions
 
-from abc import ABC, abstractmethod
-from typing import Any 
+from abc import ABC, ABCMeta, abstractmethod
+from typing import Any, TypeVar
+
+class Comparable(metaclass=ABCMeta):
+    @abstractmethod
+    def __lt__(self, other: Any) -> bool: ...
+
+RankingItem = TypeVar('RankingItem', bound=Comparable)
+
 
 class RankingEnsemble(ABC):
 
     @staticmethod
     @abstractmethod
-    def combine(rankings: list[list[Any]]) -> list[Any]: ...
+    def combine(rankings: list[list[RankingItem]]) -> list[RankingItem]: ...
 
 class Borda(RankingEnsemble):
     def combine(rankings): 
@@ -22,9 +29,13 @@ class Borda(RankingEnsemble):
 
         sorted_scores = sorted(item_scores.items(), key=lambda x:x[1], reverse=True)
 
-        final_ranking = [item for item, _ in sorted_scores]
+        final_ranking_by_score = [item for item, _ in sorted_scores]
 
-        return final_ranking[:len(rankings[0])]
+        scores_sorted_by_item_id = sorted(sorted_scores, key=lambda x:x[0], reverse=False)
+
+        final_ranking_by_id = [score for _, score in scores_sorted_by_item_id]
+
+        return final_ranking_by_score, final_ranking_by_id
 
 class Copeland(RankingEnsemble):
     def combine(rankings):
@@ -81,9 +92,12 @@ class Copeland(RankingEnsemble):
 
         sorted_scores = sorted(item_scores.items(), key=lambda x:x[1], reverse=True)
 
-        final_ranking = [item for item, _ in sorted_scores]
+        final_ranking_by_score = [item for item, _ in sorted_scores]
 
-        return final_ranking[:len(rankings[0])]
+        scores_sorted_by_item_id = sorted(sorted_scores, key=lambda x:x[0], reverse=False)
 
+        final_ranking_by_id = [score for _, score in scores_sorted_by_item_id]
+
+        return final_ranking_by_score, final_ranking_by_id
 
 
